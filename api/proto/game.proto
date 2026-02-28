@@ -1,0 +1,43 @@
+// api/proto/game.proto
+syntax = "proto3";
+
+package game;
+option go_package = "github.com/liyongjianok/zjh-game/api/proto;pb";
+
+// 玩家操作类型
+enum ActionType {
+    ACTION_UNKNOWN = 0;
+    ACTION_FOLD = 1;     // 弃牌
+    ACTION_LOOK = 2;     // 看牌
+    ACTION_CALL = 3;     // 跟注
+    ACTION_RAISE = 4;    // 加注
+    ACTION_COMPARE = 5;  // 比牌
+}
+
+// 客户端发往服务端的请求帧
+message ActionRequest {
+    string table_id = 1;      // 房间/牌桌ID
+    ActionType action_type = 2; // 操作类型
+    int64 amount = 3;         // 涉及金额（加注时使用）
+    int64 timestamp = 4;      // 客户端时间戳，用于防重放
+    string signature = 5;     // 请求签名
+}
+
+// 服务端广播给客户端的状态帧
+message GameStateResponse {
+    string table_id = 1;
+    int32 current_round = 2;   // 当前轮数
+    int64 pot_amount = 3;      // 锅底总金额
+    string current_turn_id = 4;// 当前操作玩家ID
+    repeated PlayerState players = 5; // 场上玩家状态
+}
+
+message PlayerState {
+    string player_id = 1;
+    string nickname = 2;
+    int64 current_bet = 3;     // 本局已下注总额
+    bool has_folded = 4;       // 是否已弃牌
+    bool has_looked = 5;       // 是否已看牌
+    bool is_turn = 6;          // 是否轮到该玩家
+    repeated int32 cards = 7;  // 手牌（只有自己或比牌/结算时才下发真实数据，否则下发掩码）
+}
